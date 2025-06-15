@@ -56,26 +56,43 @@ public class WordleGame {
      * Runs the game.
      */
     public void play() {
-        String answer = selectRandomWord();
-        showIntroduction();
-        
-        boolean solved = false;
-        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            System.out.printf("Attempt %d/%d: ", attempt, MAX_ATTEMPTS);
-            String guess = getValidGuess();
-
-            List<Hint> feedback = FeedbackCalculator.computeFeedback(answer, guess);
-            printColoredFeedback(guess, feedback);
+        try {
+            String answer = selectRandomWord();
+            showIntroduction();
             
-            if (allGreen(feedback)) {
-                System.out.println("Congratulations! You've found the word in " + attempt + " attempt(s)!");
-                solved = true;
-                break;
+            boolean solved = false;
+            int attempt = 1;
+            
+            while (attempt <= MAX_ATTEMPTS && App.isRunning() && !solved) {
+                System.out.printf("Attempt %d/%d: ", attempt, MAX_ATTEMPTS);
+                String guess = getValidGuess();
+                
+                if (App.isRunning()) {
+                    List<Hint> feedback = FeedbackCalculator.computeFeedback(answer, guess);
+                    printColoredFeedback(guess, feedback);
+                    
+                    if (allGreen(feedback)) {
+                        System.out.println("Congratulations! You've found the word in " + attempt + " attempt(s)!");
+                        solved = true;
+                    }
+                }
+                attempt++;
             }
+            
+            if (!solved && App.isRunning()) {
+                System.out.println("Out of attempts! The word was: " + answer);
+            }
+        } finally {
+            cleanup();
         }
-        
-        if (!solved) {
-            System.out.println("Out of attempts! The word was: " + answer);
+    }
+
+    /**
+     * Cleans up resources used by the game.
+     */
+    private void cleanup() {
+        if (scanner != null) {
+            scanner.close();
         }
     }
     
